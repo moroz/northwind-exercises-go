@@ -2,5 +2,5 @@ _minted-*
 /*.aux
 /*.log
 /*.out
-testing/northwind.sql
-testing/files
+db/northwind.sql
+db/files
