@@ -4,3 +4,4 @@ _minted-*
 /*.out
 db/northwind.sql
 db/files
+texput.log

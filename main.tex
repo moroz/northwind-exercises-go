@@ -17,11 +17,15 @@ The goal of these materials is to familiarize the student with SQL database quer
 To this end, we are going to write a very similar thing over and over again.
 \end{abstract}
 
+\setlength{\parskip}{.5em}
+
 \raggedright
 
 \section{Initial setup}
 
 In this section, we are going to set up a PostgreSQL instance in a Docker container and populate it with data from the \href{https://en.wikiversity.org/wiki/Database_Examples/Northwind}{Northwind Traders database}, which is an example database created by Microsoft.
+
+See \href{https://github.com/pthom/northwind_psql/blob/master/ER.png}{this link} for a diagram of the database schema.
 
 Download \href{https://raw.githubusercontent.com/pthom/northwind_psql/refs/heads/master/northwind.sql}{this file} to a local directory, e. g. \mintinline{Shell}{~/working/northwind/northwind.sql}.
 In the same directory, create a file named \mintinline{Shell}{docker-compose.yml} with the following contents:
@@ -65,5 +69,77 @@ northwind=#
 \section{Service pattern: querying for a single record}
 
 In a previous assignment, we have learned to build ``service'' types to encapsulate logic related to database queries.
+
+For this assignment, create a new Go project. Within this project, we are going to create two packages: a \texttt{types} package where we define data structures for the data we will be fetching from the database, like so:
+
+\begin{minted}{go}
+// northwind/types/supplier.go
+package types
+
+type Supplier struct {
+  SupplierID   int
+  CompanyName  string
+  ContactName  string
+  ContactTitle string
+  Address      string
+  City         string
+  Region       string
+  PostalCode   string
+  Country      string
+  Phone        string
+  Fax          string
+  Homepage     string
+}
+\end{minted}
+
+Another package will be \texttt{services}, where we define our service types, like so:
+
+\begin{minted}{go}
+// northwind/services/supplier_service.go
+package services
+
+import (
+  "database/sql"
+
+  "github.com/moroz/go-teaching/types"
+)
+
+type SupplierService struct {
+  db *sql.DB
+}
+
+func NewSupplierService(db *sql.DB) SupplierService {
+  return SupplierService{db}
+}
+
+const getSupplierByIDQuery = `select supplier_id, company_name,
+contact_name, contact_title, address, city, region, postal_code,
+country, phone, fax, homepage from suppliers where supplier_id = $1`
+
+func (s *SupplierService) GetSupplierByID(id int) (*types.Supplier, error) {
+  var i types.Supplier
+  err := s.db.QueryRow(getSupplierByIDQuery, id).Scan(
+    &i.SupplierID,
+    &i.CompanyName,
+    &i.ContactName,
+    &i.ContactTitle,
+    &i.Address,
+    &i.City,
+    &i.Region,
+    &i.PostalCode,
+    &i.Country,
+    &i.Phone,
+    &i.Fax,
+    &i.Homepage,
+  )
+  return &i, err
+}
+\end{minted}
+
+Based on the example above and the \href{https://github.com/pthom/northwind_psql/blob/master/ER.png}{Northwind Traders database}, define a data structure for each of the following tables: \texttt{suppliers}, \texttt{products}, \texttt{categories}, \texttt{customers}, \texttt{employees}, \texttt{us\_states}, \texttt{orders}, \texttt{shippers}. The name of a structure should be the singural form of the table name, e. g. \texttt{table products} => \texttt{type Product struct ...}
+
+Each of the types should be defined in a separate source file, e. g. \texttt{type Product} should be defined in \texttt{types/product.go}.
+
+For each of these tables, define a service type with a single method that simply fetches a record by its database ID, e. g. \texttt{GetProductByID}, with logic similar to the provided code samples. Please ensure that all column and table names are the same as in the actual database.
 
 \end{document}
