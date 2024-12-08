@@ -1,0 +1,69 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{xeCJK,fontspec,hyperref,listings,xcolor}
+\setmainfont[Mapping=tex-text]{Gentium Plus}
+\setmonofont{Consolas NF}
+\usepackage[margin=2.5cm]{geometry}
+\title{Chichi's Learning Materials\\ SQL Querying with Go}
+\author{Karol Moroz}
+
+\usepackage{minted}
+\usemintedstyle{vs}
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The goal of these materials is to familiarize the student with SQL database querying techniques in Go.
+To this end, we are going to write a very similar thing over and over again.
+\end{abstract}
+
+\raggedright
+
+\section{Initial setup}
+
+In this section, we are going to set up a PostgreSQL instance in a Docker container and populate it with data from the \href{https://en.wikiversity.org/wiki/Database_Examples/Northwind}{Northwind Traders database}, which is an example database created by Microsoft.
+
+Download \href{https://raw.githubusercontent.com/pthom/northwind_psql/refs/heads/master/northwind.sql}{this file} to a local directory, e. g. \mintinline{Shell}{~/working/northwind/northwind.sql}.
+In the same directory, create a file named \mintinline{Shell}{docker-compose.yml} with the following contents:
+
+\begin{minted}{yaml}
+services:
+  db:
+    image: "postgres:17"
+    environment:
+      POSTGRES_DB: northwind
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - "pg_data:/var/lib/postgres/data"
+      - "./northwind.sql:/docker-entrypoint-initdb.d/northwind.sql"
+      - "./files:/files"
+
+    ports:
+      - "5433:5432"
+
+volumes:
+  pg_data: {}
+\end{minted}
+
+In a terminal window, \texttt{cd} into the directory containing \texttt{docker-compose.yml} and \texttt{northwind.sql} and run:
+
+\begin{minted}{shell}
+docker compose up
+\end{minted}
+
+If everything goes correct, you should be able to connect to the database using \texttt{psql} or o GUI, like TablePlus or DBeaver on port 5433:
+
+\begin{minted}{text}
+$ psql "postgres://postgres:postgres@localhost:5433/northwind"
+psql (17.2 (Debian 17.2-1.pgdg120+1))
+Type "help" for help.
+
+northwind=# 
+\end{minted}
+
+\section{Service pattern: querying for a single record}
+
+In a previous assignment, we have learned to build ``service'' types to encapsulate logic related to database queries.
+
+\end{document}
